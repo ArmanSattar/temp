@@ -70,10 +70,12 @@ export function SiteFooter() {
                 className="h-12 w-12 text-primary mt-0.5"
               />
               <span className="self-center text-2xl font-semibold whitespace-nowrap dark:text-white">
-                Solvaults
+                Lootsy
               </span>
             </Link>
-            <p className="max-w-xs">Take snapshots of Solana contracts instantly.</p>
+            <p className="max-w-xs">
+              Take snapshots of Solana contracts instantly.
+            </p>
           </div>
           <div className="grid grid-cols-1 gap-8 sm:gap-10 sm:grid-cols-3">
             {footerNavs.map((nav) => (
@@ -114,7 +116,7 @@ export function SiteFooter() {
           <span className="text-sm text-gray-500 sm:text-center dark:text-gray-400">
             Copyright © {new Date().getFullYear()}{" "}
             <Link href="/" className="cursor-pointer">
-              Solvaults
+              Lootsy
             </Link>
             . All Rights Reserved.
           </span>

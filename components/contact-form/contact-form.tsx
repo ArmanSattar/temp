@@ -1,14 +1,18 @@
 "use client";
 
 import * as React from "react";
-import { useWallet, useConnection } from '@solana/wallet-adapter-react';
-import { useWalletModal } from '@solana/wallet-adapter-react-ui';
-import { PublicKey } from '@solana/web3.js';
+import { useWallet, useConnection } from "@solana/wallet-adapter-react";
+import { useWalletModal } from "@solana/wallet-adapter-react-ui";
+import { PublicKey } from "@solana/web3.js";
 import { toast } from "sonner";
 
 import {
-  Card, CardTitle, CardHeader, CardDescription,
-  CardContent, CardFooter
+  Card,
+  CardTitle,
+  CardHeader,
+  CardDescription,
+  CardContent,
+  CardFooter,
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -18,8 +22,6 @@ import axiosInstance from "@/utils/axios";
 import { sendPlatformFee } from "@/actions/sendPlatformFee";
 import { Sparkles } from "lucide-react";
 import AnimatedGradientText from "../ui/animated-gradient-text";
-
-
 
 export function ContactForm({ className }: React.ComponentProps<typeof Card>) {
   const { connection } = useConnection();
@@ -35,16 +37,20 @@ export function ContactForm({ className }: React.ComponentProps<typeof Card>) {
       }
 
       if (!publicKey) {
-        toast.error('No wallet found. Please connect your wallet.');
+        toast.error("No wallet found. Please connect your wallet.");
         return;
       }
 
-      const contractAddress = formData.get('contractAddress') as string;
-      const amount = formData.get('amount') as string;
+      const contractAddress = formData.get("contractAddress") as string;
+      const amount = formData.get("amount") as string;
 
       // Validate contract address
-      if (!contractAddress || contractAddress.length < 32 || contractAddress.length > 44) {
-        toast.error('Invalid contract address');
+      if (
+        !contractAddress ||
+        contractAddress.length < 32 ||
+        contractAddress.length > 44
+      ) {
+        toast.error("Invalid contract address");
         return;
       }
 
@@ -52,26 +58,28 @@ export function ContactForm({ className }: React.ComponentProps<typeof Card>) {
         // Validate if it's a valid Solana address
         new PublicKey(contractAddress);
       } catch (error) {
-        toast.error('Invalid Solana contract address');
+        toast.error("Invalid Solana contract address");
         return;
       }
 
       // Get token decimals
       try {
-        const tokenDecimals = await connection.getTokenSupply(new PublicKey(contractAddress));
+        const tokenDecimals = await connection.getTokenSupply(
+          new PublicKey(contractAddress)
+        );
         const { decimals } = tokenDecimals.value;
 
         // Send platform fee
         const signature = await sendPlatformFee(
-          connection, 
-          signTransaction!, 
-          publicKey, 
-          snapshotFee, 
-          'vau3qHqnYqCszvGsBVrY3DBHv3E2EnRqo3vE6GspQoT'
+          connection,
+          signTransaction!,
+          publicKey,
+          snapshotFee,
+          "vau3qHqnYqCszvGsBVrY3DBHv3E2EnRqo3vE6GspQoT"
         );
 
         if (!signature) {
-          toast.error('Failed to send platform fee. Please try again.');
+          toast.error("Failed to send platform fee. Please try again.");
           return;
         }
 
@@ -80,29 +88,33 @@ export function ContactForm({ className }: React.ComponentProps<typeof Card>) {
           mintAddress: contractAddress,
           minimumBalance: amount || "0",
           decimals,
-          signature
+          signature,
         };
 
-        await axiosInstance.post(`${process.env.NEXT_PUBLIC_HOST_API_V2}/snapshot`, snapshotData);
-        toast.success('Snapshot submitted successfully.');
+        await axiosInstance.post(
+          `${process.env.NEXT_PUBLIC_HOST_API_V2}/snapshot`,
+          snapshotData
+        );
+        toast.success("Snapshot submitted successfully.");
 
         // Record transaction
-        await axiosInstance.post(`${process.env.NEXT_PUBLIC_HOST_API_V2}/transaction`, {
-          signature,
-          tokenAddress: contractAddress,
-          amount: snapshotFee,
-          userAddress: publicKey.toBase58(),
-          transactionType: 'snapshot'
-        });
-
+        await axiosInstance.post(
+          `${process.env.NEXT_PUBLIC_HOST_API_V2}/transaction`,
+          {
+            signature,
+            tokenAddress: contractAddress,
+            amount: snapshotFee,
+            userAddress: publicKey.toBase58(),
+            transactionType: "snapshot",
+          }
+        );
       } catch (error) {
-        toast.error('Invalid token address or network error');
+        toast.error("Invalid token address or network error");
         return;
       }
-
     } catch (error) {
       console.error(error);
-      toast.error('Failed to process snapshot. Please try again.');
+      toast.error("Failed to process snapshot. Please try again.");
     }
   };
 

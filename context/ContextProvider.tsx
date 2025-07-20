@@ -1,43 +1,46 @@
-'use client';
+"use client";
 
-import type { FC, ReactNode } from 'react';
-import type { WalletError } from '@solana/wallet-adapter-base';
+import type { FC, ReactNode } from "react";
+import type { WalletError } from "@solana/wallet-adapter-base";
 
 // import { clusterApiUrl } from '@solana/web3.js';
-import { useRef, useMemo, useEffect, useCallback } from 'react';
+import { useRef, useMemo, useEffect, useCallback } from "react";
 // eslint-disable-next-line import/no-extraneous-dependencies
-import { WalletAdapterNetwork } from '@solana/wallet-adapter-base';
-import { useWallet, WalletProvider, ConnectionProvider } from '@solana/wallet-adapter-react';
-import { WalletModalProvider } from '@solana/wallet-adapter-react-ui';
+import { WalletAdapterNetwork } from "@solana/wallet-adapter-base";
+import {
+  useWallet,
+  WalletProvider,
+  ConnectionProvider,
+} from "@solana/wallet-adapter-react";
+import { WalletModalProvider } from "@solana/wallet-adapter-react-ui";
 import {
   TorusWalletAdapter,
   PhantomWalletAdapter,
   SolflareWalletAdapter,
   // LedgerWalletAdapter,
   // SlopeWalletAdapter,
-} from '@solana/wallet-adapter-wallets';
-import { clusterApiUrl } from '@solana/web3.js';
-import { AutoConnectProvider, useAutoConnect } from './auto-connect-provider';
-import refreshTokens from '@/actions/refreshTokens';
-import validateToken from '@/actions/validateToken';
+} from "@solana/wallet-adapter-wallets";
+import { clusterApiUrl } from "@solana/web3.js";
+import { AutoConnectProvider, useAutoConnect } from "./auto-connect-provider";
+import refreshTokens from "@/actions/refreshTokens";
+import validateToken from "@/actions/validateToken";
 
-
-import deleteAccessToken from '@/actions/logout';
-import loginUser from '@/actions/login';
+import deleteAccessToken from "@/actions/logout";
+import loginUser from "@/actions/login";
 // Default styles
-require('@solana/wallet-adapter-react-ui/styles.css');
+require("@solana/wallet-adapter-react-ui/styles.css");
 
 // login handler: send api call every refresh
 const WalletLoginHandler: FC<{ children: ReactNode }> = ({ children }) => {
-  const { publicKey, connected, disconnecting, disconnect, signMessage } = useWallet();
-
+  const { publicKey, connected, disconnecting, disconnect, signMessage } =
+    useWallet();
 
   const prevConnectedRef = useRef<boolean>(false);
 
   useEffect(() => {
     if (!prevConnectedRef.current && connected && publicKey && signMessage) {
       const handleLogin = async () => {
-        const storedAccessToken = localStorage.getItem('accessToken');
+        const storedAccessToken = localStorage.getItem("accessToken");
 
         if (storedAccessToken) {
           const isValidToken = await validateToken(storedAccessToken);
@@ -45,18 +48,17 @@ const WalletLoginHandler: FC<{ children: ReactNode }> = ({ children }) => {
             await refreshTokens(publicKey);
             return;
           }
-          localStorage.removeItem('accessToken');
+          localStorage.removeItem("accessToken");
         }
 
         try {
-          if (!localStorage.getItem('priorityFee')) {
-            localStorage.setItem('priorityFee', '100000');
+          if (!localStorage.getItem("priorityFee")) {
+            localStorage.setItem("priorityFee", "100000");
           }
           await loginUser(publicKey.toBase58(), signMessage);
           await refreshTokens(publicKey);
-
         } catch (error) {
-          console.error('Login or refetching token failed:', error);
+          console.error("Login or refetching token failed:", error);
         }
       };
 
@@ -69,7 +71,7 @@ const WalletLoginHandler: FC<{ children: ReactNode }> = ({ children }) => {
     if (disconnecting) {
       disconnect();
       deleteAccessToken();
-      localStorage.removeItem('priorityFee'); // Clear priority fee setting
+      localStorage.removeItem("priorityFee"); // Clear priority fee setting
       setTimeout(() => {
         window.location.reload();
       }, 1000);
@@ -84,7 +86,10 @@ const WalletContextProvider: FC<{ children: ReactNode }> = ({ children }) => {
   const network = WalletAdapterNetwork.Mainnet;
 
   // Helius RPC endpoint'ini kullan
-  const endpoint = "https://mainnet.helius-rpc.com/?api-key=1be52455-35c2-4aa2-90ec-f2151fcf1460";
+  const endpoint =
+    process.env.NODE_ENV === "production"
+      ? `https://mainnet.helius-rpc.com/?api-key=${process.env.NEXT_PUBLIC_HELIUS_API_KEY}`
+      : "https://api.devnet.solana.com";
 
   const wallets = useMemo(
     () => [
@@ -101,7 +106,11 @@ const WalletContextProvider: FC<{ children: ReactNode }> = ({ children }) => {
 
   return (
     <ConnectionProvider endpoint={endpoint}>
-      <WalletProvider wallets={wallets} onError={onError} autoConnect={autoConnect}>
+      <WalletProvider
+        wallets={wallets}
+        onError={onError}
+        autoConnect={autoConnect}
+      >
         <WalletModalProvider>
           <WalletLoginHandler>{children}</WalletLoginHandler>
         </WalletModalProvider>

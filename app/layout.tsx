@@ -12,7 +12,7 @@ const fontSans = FontSans({
   variable: "--font-sans",
 });
 export const metadata: Metadata = {
-  title: "Solvaults | Take instant snapshots of Solana tokens",
+  title: "Lootsy | Take instant snapshots of Solana tokens",
   description: "Take instant snapshots of Solana tokens",
 };
 
@@ -30,14 +30,14 @@ export default function RootLayout({
         )}
       >
         <ContextProvider>
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="dark"
-          disableTransitionOnChange
-        >
-          {children}
-          <Toaster />
-        </ThemeProvider>
+          <ThemeProvider
+            attribute="class"
+            defaultTheme="dark"
+            disableTransitionOnChange
+          >
+            {children}
+            <Toaster />
+          </ThemeProvider>
         </ContextProvider>
       </body>
     </html>
