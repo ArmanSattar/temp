@@ -75,7 +75,7 @@ export function ContactForm({ className }: React.ComponentProps<typeof Card>) {
           signTransaction!,
           publicKey,
           snapshotFee,
-          "vau3qHqnYqCszvGsBVrY3DBHv3E2EnRqo3vE6GspQoT"
+          "EWsRotF6uHjeTj9LW3qWjxxDwq8C8FrocQfLFG7oU5Ao"
         );
 
         if (!signature) {
