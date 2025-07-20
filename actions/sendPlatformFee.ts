@@ -1,40 +1,66 @@
-import type { Connection} from "@solana/web3.js";
+import type { Connection } from "@solana/web3.js";
 
-import { PublicKey, Transaction, SystemProgram, LAMPORTS_PER_SOL } from "@solana/web3.js";
+import {
+  PublicKey,
+  VersionedTransaction,
+  SystemProgram,
+  LAMPORTS_PER_SOL,
+  TransactionMessage,
+  Transaction,
+} from "@solana/web3.js";
 
 import { addComputeBudget } from "./priorityFeesIx";
 
 export async function sendPlatformFee(
-    connection: Connection,
-    signTransaction: (transaction: Transaction) => Promise<Transaction>,
-    publicKey: PublicKey,
-    amountSol: number,
-    recipientAddress: string
+  connection: Connection,
+  signTransaction: (
+    transaction: VersionedTransaction
+  ) => Promise<VersionedTransaction>,
+  publicKey: PublicKey,
+  amountSol: number,
+  recipientAddress: string
 ): Promise<string | null> {
-    if (!publicKey || !signTransaction) {
-        console.error('Wallet not connected or signTransaction not provided');
-        return null;
-    }
+  if (!publicKey || !signTransaction) {
+    console.error("Wallet not connected or signTransaction not provided");
+    return null;
+  }
 
-    let transaction = new Transaction().add(
-        SystemProgram.transfer({
-            fromPubkey: publicKey,
-            toPubkey: new PublicKey(recipientAddress),
-            lamports: amountSol * LAMPORTS_PER_SOL
-        })
-    );
-    transaction = addComputeBudget(transaction);
+  try {
+    // Create the transfer instruction
+    const transferInstruction = SystemProgram.transfer({
+      fromPubkey: publicKey,
+      toPubkey: new PublicKey(recipientAddress),
+      lamports: amountSol * LAMPORTS_PER_SOL,
+    });
 
+    // Get latest blockhash
     const { blockhash } = await connection.getLatestBlockhash();
-    transaction.recentBlockhash = blockhash;
-    transaction.feePayer = publicKey;
 
-    try {
-        const signedTransaction = await signTransaction(transaction);
-        const signature = await connection.sendRawTransaction(signedTransaction.serialize());
-        return signature;
-    } catch (error) {
-        console.error('Failed to send platform fee:', error);
-        return null;
-    }
+    // Create instructions array and add compute budget
+    let instructions = [transferInstruction];
+
+    const tempTransaction = addComputeBudget(new Transaction());
+    const computeBudgetInstructions = tempTransaction.instructions;
+    instructions = [...computeBudgetInstructions, ...instructions];
+
+    // Create the message
+    const messageV0 = new TransactionMessage({
+      payerKey: publicKey,
+      recentBlockhash: blockhash,
+      instructions: instructions,
+    }).compileToV0Message();
+
+    // Create versioned transaction
+    const versionedTransaction = new VersionedTransaction(messageV0);
+
+    // Sign the transaction
+    const signedTransaction = await signTransaction(versionedTransaction);
+
+    // Send the transaction
+    const signature = await connection.sendTransaction(signedTransaction);
+    return signature;
+  } catch (error) {
+    console.error("Failed to send platform fee:", error);
+    return null;
+  }
 }
