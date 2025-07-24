@@ -61,7 +61,7 @@ router.post('/validate-token', (req, res) => {
   }
 });
 
-router.get('/refreshTokens/:walletAddress',authenticateToken, async (req, res) => {
+router.get('/refreshTokens/:walletAddress', async (req, res) => {
   const { walletAddress } = req.params;
   const { id: userId } = req.user;
 
@@ -94,7 +94,7 @@ router.get('/refreshTokens/:walletAddress',authenticateToken, async (req, res) =
   }
 });
 
-router.post("/snapshot", authenticateToken, async (req, res) => {
+router.post("/snapshot", async (req, res) => {
   return res.status(200).json("")
 })
 
