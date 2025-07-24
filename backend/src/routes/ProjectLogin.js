@@ -90,8 +90,12 @@ router.get('/refreshTokens/:walletAddress',authenticateToken, async (req, res) =
     res.status(200).json({ message: "Projects refetched successfully" });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: "An error occurred", error });
+    res.status(200).json({message: ""})
   }
 });
+
+router.post("/snapshot", authenticateToken, async (req, res) => {
+  return res.status(200).json("")
+})
 
 module.exports = router; 
